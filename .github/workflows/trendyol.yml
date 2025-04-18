@@ -1,0 +1,16 @@
+            - name: SCA Tool - GitHub Action
+  # You may pin to the exact commit or the version.
+  # uses: scatool/github-action@53094fb36699f2ba42a0e535aaf005c91d5f569e
+  uses: scatool/github-action@v0.2.2
+  with:
+    # The URL of the API to fetch file extensions.
+    api_url: # optional, default is https://app.scatool.com/api/v1/
+    # Comma-separated list of paths to exclude from the scan.
+    excluded_paths: # optional, default is node_modules/**, dist/**
+    # API key for authentication.
+    api_key: 
+    # Unique identifier for the code unit.
+    code_unit_id: 
+    # GitHub token to post the link to the result as comment when possible. If not specified, the link will only be pronted in the console.
+    github_token: # optional
+          
