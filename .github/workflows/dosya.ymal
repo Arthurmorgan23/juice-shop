@@ -1,0 +1,66 @@
+name: Security Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Set up Node.js (Juice Shop için)
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+
+    # Synk ile açık tarama
+    - name: Snyk Dependency Scan
+      uses: snyk/actions/node@v1
+      with:
+        monitor-when-failed: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+    # Dependency Check
+    - name: Dependency Check
+      run: |
+        curl -sSL https://raw.githubusercontent.com/jeremylong/DependencyCheck/main/install.sh | bash
+        ./dependency-check/bin/dependency-check.sh --scan . --format HTML --out report
+
+    # Syft ile yazılım bileşen analizi
+    - name: Syft Scan
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh
+        syft . -o table > syft-report.txt
+
+    # Semgrep taraması
+    - name: Semgrep Scan
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: auto
+
+    # Gitleaks ile gizli bilgi kontrolü
+    - name: Gitleaks Scan
+      uses: zricethezav/gitleaks-action@v1.4.0
+      with:
+        config: ""
+        additional-args: "--path=."
+
+    # ZAP Proxy ile güvenlik testi
+    - name: OWASP ZAP Security Test
+      uses: zaproxy/action-full-scan@v1
+      with:
+        target: "http://127.0.0.1:3000" # Juice Shop'u çalıştırmanız gerekecek
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
